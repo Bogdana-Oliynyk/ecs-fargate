@@ -1,20 +1,87 @@
 #!/usr/bin/env node
+import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { AwsCdkStack } from '../lib/aws-cdk-stack';
+import { DeploymentStack } from '../lib/deployment-stack';
+import { DockerImageStack } from '../lib/docker-image-stack';
+import { ECRStack } from '../lib/ecr-stack';
+import { RDSStack } from '../lib/rds-stack';
+import { VPCStack } from '../lib/vpc-stack';
+import { BastionStack } from '../lib/bastion-stack';
 
 const app = new cdk.App();
-new AwsCdkStack(app, 'AwsCdkStack', {
-  /* If you don't specify 'env', this stack will be environment-agnostic.
-   * Account/Region-dependent features and context lookups will not work,
-   * but a single synthesized template can be deployed anywhere. */
+const ENV = {
+  account: process.env.CDK_DEFAULT_ACCOUNT,
+  region: process.env.CDK_DEFAULT_REGION,
+};
+const STAGING = 'staging';
+const PRODUCTION = 'production';
 
-  /* Uncomment the next line to specialize this stack for the AWS Account
-   * and Region that are implied by the current CLI configuration. */
-  // env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
+// ------ SHARED SERVICES -------
 
-  /* Uncomment the next line if you know exactly what Account and Region you
-   * want to deploy the stack to. */
-  // env: { account: '123456789012', region: 'us-east-1' },
+// ECR repo
+const ecrStack = new ECRStack(app, 'ECRStack', { env: ENV });
 
-  /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
+// VPC
+const vpcStack = new VPCStack(app, 'VPCStack', { env: ENV });
+
+// Bastion for DB access
+const bastionStack = new BastionStack(app, 'BastionStack', {
+  vpc: vpcStack.vpc,
+  env: ENV,
 });
+
+// --------- STAGING ------------
+
+// RDS DB
+new RDSStack(app, 'RDSStack-Staging', {
+  stageName: STAGING,
+  vpc: vpcStack.vpc,
+  bastionSecurityGroup: bastionStack.securityGroup,
+  env: ENV,
+});
+
+// Docker image
+new DockerImageStack(app, 'DockerImageStack-Staging', {
+  stageName: STAGING,
+  imageTag: STAGING,
+  ecr: ecrStack.ecr,
+  env: ENV,
+});
+
+// Server deployment
+new DeploymentStack(app, 'DeploymentStack-Staging', {
+  stageName: STAGING,
+  imageTag: STAGING,
+  vpc: vpcStack.vpc,
+  env: ENV,
+});
+
+// --------- END STAGING ------------
+
+// --------- PRODUCTION ------------
+
+// RDS DB
+new RDSStack(app, 'RDSStack-Prod', {
+  stageName: PRODUCTION,
+  vpc: vpcStack.vpc,
+  bastionSecurityGroup: bastionStack.securityGroup,
+  env: ENV,
+});
+
+// Docker image
+new DockerImageStack(app, 'DockerImageStack-Prod', {
+  stageName: PRODUCTION,
+  imageTag: PRODUCTION,
+  ecr: ecrStack.ecr,
+  env: ENV,
+});
+
+// Server deployment
+new DeploymentStack(app, 'DeploymentStack-Prod', {
+  stageName: PRODUCTION,
+  imageTag: PRODUCTION,
+  vpc: vpcStack.vpc,
+  env: ENV,
+});
+
+// --------- END PRODUCTION ------------
