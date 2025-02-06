@@ -10,7 +10,6 @@ import { Construct } from 'constructs';
 import {
   CDK_SYNTH_OUTPUT_DIRECTORY,
   CDK_SYNTH_STEP,
-  cdkSynthCommands,
   dockerBuildCommands,
   CDK_GITHUB_REPO,
   GITHUB_TOKEN,
@@ -39,7 +38,7 @@ export class DockerImageStack extends Stack {
         input: CodePipelineSource.gitHub(CDK_GITHUB_REPO, stageName, {
           authentication: GITHUB_TOKEN,
         }),
-        commands: cdkSynthCommands,
+        commands: ['npm run cdk-synth'],
         primaryOutputDirectory: CDK_SYNTH_OUTPUT_DIRECTORY,
       }),
     });

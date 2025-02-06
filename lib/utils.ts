@@ -24,15 +24,6 @@ export const dockerBuildCommands = [
   'docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG',
 ];
 
-export const cdkSynthCommands = [
-  'echo Installing initial dependencies',
-  'npm install',
-  'echo Installing all dependencies and building...',
-  'npm run build-all',
-  'echo Synthesizing the CDK Application...',
-  'npx cdk synth',
-];
-
 export const stageTitleCase = (str: string) =>
   str.replace(
     /\w\S*/g,
