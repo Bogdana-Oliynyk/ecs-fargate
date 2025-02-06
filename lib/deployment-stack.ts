@@ -26,7 +26,6 @@ import { ApplicationProtocol } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
 import { ISecret, Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Repository } from 'aws-cdk-lib/aws-ecr';
-// import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 
 interface DeploymentStackProps extends StackProps {
   stageName: string;
@@ -117,14 +116,11 @@ export class DeploymentStack extends Stack {
       { vpc: props?.vpc, allowAllOutbound: true }
     );
 
-    // const certificate = Certificate.fromCertificateArn(
-    //   this,
-    //   'DomainCertificate',
-    //   'arn:aws:acm:us-east-1:880890061696:certificate/ec9f3478-c72d-499f-aa25-d1fcdb45ab46',
-    // );
-
-    // Any changes/stack destroy + deploy will require changes to Route 53's
-    // A type record for URLs that are using the ALB DNS name
+    // If we want the server to be a HTTPS server
+    // We will need to setup Route 53 + certificate
+    // and in that case, we can change the protocol to HTTPS
+    // and the listener port to 443
+    // Lastly, we can also redirect all HTTP traffic to HTTPS
     const fargateService = new ApplicationLoadBalancedFargateService(
       this,
       `${stageTitle}Service`,
@@ -133,14 +129,10 @@ export class DeploymentStack extends Stack {
         taskDefinition: taskDefinition,
         publicLoadBalancer: true,
         assignPublicIp: true,
-        // certificate,
-        // protocol: ApplicationProtocol.HTTPS,
-        // listenerPort: 443,
         protocol: ApplicationProtocol.HTTP,
         listenerPort: 80,
         securityGroups: [fargateSecurityGroup],
         taskSubnets: { subnetType: SubnetType.PUBLIC },
-        // redirectHTTP: true,
       }
     );
 
