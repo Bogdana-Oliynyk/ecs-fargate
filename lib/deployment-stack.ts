@@ -96,11 +96,11 @@ export class DeploymentStack extends Stack {
         FORCE_DEPLOYMENT_ENV_VAR: Date.now().toString(), // Add a changing env variable to force a new deployment
       },
       secrets: {
-        HOST: ecsSecret.fromSecretsManager(dbSecret, 'host'),
+        DBHOST: ecsSecret.fromSecretsManager(dbSecret, 'host'),
         DBNAME: ecsSecret.fromSecretsManager(dbSecret, 'dbname'),
         DBUSER: ecsSecret.fromSecretsManager(dbSecret, 'username'),
         DBPASS: ecsSecret.fromSecretsManager(dbSecret, 'password'),
-        PORT: ecsSecret.fromSecretsManager(dbSecret, 'port'),
+        DBPORT: ecsSecret.fromSecretsManager(dbSecret, 'port'),
       },
       logging: LogDriver.awsLogs({
         streamPrefix: `${stageTitle}Logs`,
