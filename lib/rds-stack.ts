@@ -1,4 +1,4 @@
-import { CfnOutput, Fn, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
+import { RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import {
   InstanceClass,
@@ -19,6 +19,7 @@ import {
 } from 'aws-cdk-lib/aws-rds';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { stageTitleCase } from './utils';
+import { ISecret } from 'aws-cdk-lib/aws-secretsmanager';
 
 interface RDSStackProps extends StackProps {
   stageName: string;
@@ -27,6 +28,9 @@ interface RDSStackProps extends StackProps {
 }
 
 export class RDSStack extends Stack {
+  securityGroup: ISecurityGroup;
+  rdsSecret: ISecret;
+
   constructor(scope: Construct, id: string, props: RDSStackProps) {
     super(scope, id, props);
     const stageName = props?.stageName as string;
@@ -85,14 +89,11 @@ export class RDSStack extends Stack {
       'Allow access from Bastion'
     );
 
-    new CfnOutput(this, 'DBSecretArn', {
-      value: rds.secret?.secretArn || '',
-      exportName: 'DBSecretArn',
-    });
-
-    new CfnOutput(this, 'DBSecurityGroup', {
-      value: rdsSecurityGroup.securityGroupId,
-      exportName: 'DbSecurityGroupId',
-    });
+    this.securityGroup = rdsSecurityGroup;
+    const secret = rds.secret;
+    if (!secret) {
+      throw new Error('Missing DB Secret');
+    }
+    this.rdsSecret = secret;
   }
 }

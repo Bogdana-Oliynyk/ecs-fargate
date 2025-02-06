@@ -33,7 +33,7 @@ const bastionStack = new BastionStack(app, 'BastionStack', {
 // --------- STAGING ------------
 
 // RDS DB
-new RDSStack(app, 'RDSStack-Staging', {
+const stagingRdsStack = new RDSStack(app, 'RDSStack-Staging', {
   stageName: STAGING,
   vpc: vpcStack.vpc,
   bastionSecurityGroup: bastionStack.securityGroup,
@@ -53,6 +53,8 @@ new DeploymentStack(app, 'DeploymentStack-Staging', {
   stageName: STAGING,
   imageTag: STAGING,
   vpc: vpcStack.vpc,
+  rdsSecret: stagingRdsStack.rdsSecret,
+  rdsSecurityGroup: stagingRdsStack.securityGroup,
   env: ENV,
 });
 
@@ -61,7 +63,7 @@ new DeploymentStack(app, 'DeploymentStack-Staging', {
 // --------- PRODUCTION ------------
 
 // RDS DB
-new RDSStack(app, 'RDSStack-Prod', {
+const prodRdsStack = new RDSStack(app, 'RDSStack-Prod', {
   stageName: PRODUCTION,
   vpc: vpcStack.vpc,
   bastionSecurityGroup: bastionStack.securityGroup,
@@ -81,6 +83,8 @@ new DeploymentStack(app, 'DeploymentStack-Prod', {
   stageName: PRODUCTION,
   imageTag: PRODUCTION,
   vpc: vpcStack.vpc,
+  rdsSecret: prodRdsStack.rdsSecret,
+  rdsSecurityGroup: prodRdsStack.securityGroup,
   env: ENV,
 });
 

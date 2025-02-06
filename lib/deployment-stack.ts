@@ -1,5 +1,11 @@
 import { CfnOutput, Fn, Stack, StackProps } from 'aws-cdk-lib';
-import { IVpc, Port, SecurityGroup, SubnetType } from 'aws-cdk-lib/aws-ec2';
+import {
+  ISecurityGroup,
+  IVpc,
+  Port,
+  SecurityGroup,
+  SubnetType,
+} from 'aws-cdk-lib/aws-ec2';
 import {
   Cluster,
   ContainerImage,
@@ -18,7 +24,7 @@ import { ECR_REPOSITORY_NAME, ECS_TASKS_URL, stageTitleCase } from './utils';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { ApplicationProtocol } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
-import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
+import { ISecret, Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Repository } from 'aws-cdk-lib/aws-ecr';
 // import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 
@@ -26,6 +32,8 @@ interface DeploymentStackProps extends StackProps {
   stageName: string;
   imageTag: string;
   vpc: IVpc;
+  rdsSecret: ISecret;
+  rdsSecurityGroup: ISecurityGroup;
 }
 
 export class DeploymentStack extends Stack {
@@ -36,7 +44,7 @@ export class DeploymentStack extends Stack {
     const dbSecret = Secret.fromSecretCompleteArn(
       this,
       'dbSecret',
-      Fn.importValue('DBSecretArn')
+      props?.rdsSecret.secretArn
     );
 
     const secretsManagerPermissions = new PolicyStatement({
@@ -139,7 +147,7 @@ export class DeploymentStack extends Stack {
     const rdsSecurityGroup = SecurityGroup.fromSecurityGroupId(
       this,
       `RDS${stageTitle}SecurityGroup`,
-      Fn.importValue('DbSecurityGroupId')
+      props?.rdsSecurityGroup.securityGroupId
     );
 
     rdsSecurityGroup.connections.allowFrom(
