@@ -33,6 +33,7 @@ To utilize the code to deploy a server, you must have the following:
   - [AWS Command Line Interface (CLI)](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
   - [AWS Session Manager plugin for the AWS CLI](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html)
   - [AWS CDK CLI](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html)
+- Fork this repository to your GitHub account (so you can use your GitHub token for access - see below)
 - A GitHub token (generated from your developer settings) for AWS to access this repository
   - Store this token in the AWS Secrets Manager, with the name `gh-token`
 - A server repository which you have a GitHub token for AWS to access the repository. It can be a public or private repository
