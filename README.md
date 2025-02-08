@@ -34,11 +34,13 @@ To utilize the code to deploy a server, you must have the following:
   - [AWS Session Manager plugin for the AWS CLI](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html)
   - [AWS CDK CLI](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html)
 - Fork this repository to your GitHub account (so you can use your GitHub token for access - see below)
-- A GitHub token (generated from your developer settings) for AWS to access this repository
+- A GitHub token (generated from your developer settings) for AWS to access this repository.
+  - See [github-token.md](./docs/github-token.md) for more information
   - Store this token in the AWS Secrets Manager, with the name `gh-token`
 - A server repository which you have a GitHub token for AWS to access the repository. It can be a public or private repository
-  - Store this token in the AWS Secrets Manager
-  - If the token to access server repository is different from the token above, you may need to modify the code in `DockerImageStack` accordingly
+  - If the token to access server repository is different from the token above:
+    - Store the additional token in the AWS Secrets Manager
+    - You may need to modify the code in `DockerImageStack` accordingly to account for a different secret name
 
 ## Deployment guide
 
@@ -46,8 +48,7 @@ To utilize the code to deploy a server, you must have the following:
 
 - Run `npm install`
 - Ensure you are authenticated with AWS - either via `aws configure` or `aws configure sso` (if SSO is enabled)
-  - If you anticipate having multiple profiles associated with your local machine, **_having profiles attached to each account is strongly recommended so you can switch between profiles with ease_**
-  - You can do so by: `aws configure --profile <profile-name>` or through the prompt in `aws configure sso`
+  - See [configure-aws-cli.md](./docs/configure-aws-cli.md) for more details
 - In [utils.ts](./lib/utils.ts), change the server and CDK GitHub repository addresses to the repositories that you are using
 
 ### Deployment
@@ -62,13 +63,15 @@ You can see the list of stacks using `cdk list`.
 
 Below is an example flow of how the stacks can be deployed. You can use CloudFormation or console to monitor progress unless otherwise specified:
 
-1. Deploy VPC and ECR: `npx cdk deploy ECRStack VPCStack`
-   - These are "shared services" for other stacks
-2. Deploy RDS: `npx cdk deploy RDSStack-Staging` (or `RDSStack-Production` for production ENV)
-   - Since `RDSStack` depends on `BastionStack`, the `BastionStack` should deploy along with `RDSStack` if not done so
-3. Deploy Docker image: `npx cdk deploy DockerImageStack-Staging` (or `DockerImageStack-Production` for production ENV)
+1. Deploy RDS: `npx cdk deploy RDSStack-Staging` (or `RDSStack-Production` for production ENV)
+
+   - This will deploy `VPCStack` and `BastionStack` if they are not deployed
+   - We recommend separate DB deployments from server deployments in general. As much as they are interconnected the resource maintenance should be done separately
+
+2. Deploy Docker image: `npx cdk deploy DockerImageStack-Staging` (or `DockerImageStack-Production` for production ENV)
+   - This will deploy `ECRStack` if it is not deployed
    - Use CodePipeline on AWS Console UI to monitor progress
-4. Deploy Server/Fargate: `npx cdk deploy DeploymentStack-Staging` (or `DeploymentStack-Production` for production ENV)
+3. Deploy Server/Fargate: `npx cdk deploy DeploymentStack-Staging` (or `DeploymentStack-Production` for production ENV)
 
 ---
 
@@ -109,7 +112,10 @@ To do so:
 
 ## Future improvements
 
-- Manage Route 53 and certificate via CDK, so the server can handle HTTPS traffic by default
+- Include more details instructions on deployment and how to check your work afterwards
+- Improve test suite
+- Include more detailed instructions on how to generate IAM users with SSO access
+- Generate certificate (and manage Route 53, if desired) via CDK, so the server can handle HTTPS traffic by default
 - Generate and attach EC2 Key pairs to the bastion instance, so we can set up an SSH tunnel to RDS via Bastion _([This repo](https://github.com/aws-samples/secure-bastion-cdk) provides a great example on how to implement on top of the current infrastructure.)_
 - Include a stack that automatically publish docker images and deploys server with a single stack
 - Ensure all logs have a retention policy (so they are not retained forever)
