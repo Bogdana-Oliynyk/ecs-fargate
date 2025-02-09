@@ -4,6 +4,10 @@ export const ECR_REPOSITORY_NAME = 'server-repository';
 
 export const ECS_TASKS_URL = 'ecs-tasks.amazonaws.com';
 
+export const SERVER_SUBNET_NAME = 'server';
+
+export const RDS_SUBNET_NAME = 'rds';
+
 export const SERVER_GITHUB_REPO = '<owner>/<server-repo>';
 
 export const CDK_GITHUB_REPO = '<owner>/<cdk-repo>';

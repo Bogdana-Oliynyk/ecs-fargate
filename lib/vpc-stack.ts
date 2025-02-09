@@ -9,6 +9,7 @@ import {
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
+import { RDS_SUBNET_NAME, SERVER_SUBNET_NAME } from './utils';
 
 export class VPCStack extends Stack {
   vpc: IVpc;
@@ -21,8 +22,8 @@ export class VPCStack extends Stack {
       maxAzs: 2,
       natGateways: 1,
       subnetConfiguration: [
-        { name: 'server', subnetType: SubnetType.PUBLIC },
-        { name: 'rds', subnetType: SubnetType.PRIVATE_ISOLATED },
+        { name: SERVER_SUBNET_NAME, subnetType: SubnetType.PUBLIC },
+        { name: RDS_SUBNET_NAME, subnetType: SubnetType.PRIVATE_ISOLATED },
       ],
     });
 
