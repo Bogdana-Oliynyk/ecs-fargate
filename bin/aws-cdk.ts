@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { DeploymentStack } from '../lib/deployment-stack';
-import { DockerImageStack } from '../lib/docker-image-stack';
-import { ECRStack } from '../lib/ecr-stack';
-import { RDSStack } from '../lib/rds-stack';
-import { VPCStack } from '../lib/vpc-stack';
-import { BastionStack } from '../lib/bastion-stack';
+import {
+  BastionStack,
+  DeploymentStack,
+  DockerImageStack,
+  ECRStack,
+  RDSStack,
+  VPCStack,
+} from '../lib/';
 
 const app = new cdk.App();
 const ENV = {
