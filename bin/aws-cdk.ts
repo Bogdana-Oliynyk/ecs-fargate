@@ -40,14 +40,18 @@ const stagingRdsStack = new RDSStack(app, 'RDSStack-Staging', {
   env: ENV,
 });
 
-// Docker image
+// Here we demonstrate docker image and server deployment
+// done in separate stacks. One use-case would be if we
+// are working on network and/or optimizing ECS/Fargate
+// without the need to publish docker image every time
+// This way we reduce unnecessary CodeBuild/CodePipeline usage
 new DockerImageStack(app, 'DockerImageStack-Staging', {
   stageName: STAGING,
   imageTag: STAGING,
   ecr: ecrStack.ecr,
+  deployServer: false,
   env: ENV,
 });
-
 // Server deployment
 new DeploymentStack(app, 'DeploymentStack-Staging', {
   stageName: STAGING,
@@ -70,18 +74,12 @@ const prodRdsStack = new RDSStack(app, 'RDSStack-Prod', {
   env: ENV,
 });
 
-// Docker image
+// Publish Docker image + server deployment
 new DockerImageStack(app, 'DockerImageStack-Prod', {
   stageName: PRODUCTION,
   imageTag: PRODUCTION,
   ecr: ecrStack.ecr,
-  env: ENV,
-});
-
-// Server deployment
-new DeploymentStack(app, 'DeploymentStack-Prod', {
-  stageName: PRODUCTION,
-  imageTag: PRODUCTION,
+  deployServer: true,
   vpc: vpcStack.vpc,
   rdsSecret: prodRdsStack.rdsSecret,
   rdsSecurityGroup: prodRdsStack.securityGroup,
