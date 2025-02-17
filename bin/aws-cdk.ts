@@ -30,7 +30,9 @@ const bastionStack = new BastionStack(app, 'BastionStack', {
   env: ENV,
 });
 
-// --------- STAGING ------------
+// ----- END SHARED SERVICES -----
+
+// ---------- STAGING ------------
 
 // RDS DB
 const stagingRdsStack = new RDSStack(app, 'RDSStack-Staging', {
@@ -64,7 +66,7 @@ new DeploymentStack(app, 'DeploymentStack-Staging', {
 
 // --------- END STAGING ------------
 
-// --------- PRODUCTION ------------
+// ---------- PRODUCTION ------------
 
 // RDS DB
 const prodRdsStack = new RDSStack(app, 'RDSStack-Prod', {
@@ -86,4 +88,4 @@ new DockerImageStack(app, 'DockerImageStack-Prod', {
   env: ENV,
 });
 
-// --------- END PRODUCTION ------------
+// --------- END PRODUCTION -----------
