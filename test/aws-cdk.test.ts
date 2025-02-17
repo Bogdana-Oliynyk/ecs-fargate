@@ -92,9 +92,9 @@ describe('CDK tests', () => {
           subnetName = value;
         } else if (key === 'aws-cdk:subnet-type') {
           if (subnetName === SERVER_SUBNET_NAME) {
-            expect(value).toBe('Public');
+            expect(value).toEqual('Public');
           } else if (subnetName === RDS_SUBNET_NAME) {
-            expect(value).toBe('Isolated');
+            expect(value).toEqual('Isolated');
           } else {
             throw new Error(`Unknown subnet ${subnetName} with type ${value}`);
           }
@@ -108,7 +108,7 @@ describe('CDK tests', () => {
     // Assert the correct permission for VPC logging
     const iamPolicies = template.findResources('AWS::IAM::Policy');
     const policyMapping = Object.values(iamPolicies);
-    expect(policyMapping.length).toBe(1);
+    expect(policyMapping.length).toEqual(1);
     const iamPolicy = policyMapping[0];
     const statements = iamPolicy.Properties.PolicyDocument.Statement;
     expect(statements.length).toBeGreaterThan(0);
