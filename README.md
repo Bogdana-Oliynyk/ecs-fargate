@@ -21,6 +21,10 @@ Other utility resources:
 
 - Bastion EC2 instance to securely access the RDS in a private subnet
 
+## How to use this repository
+
+See [how-to-use-this-repo.md](./docs/how-to-use-this-repo.md)
+
 ## Deployment guide
 
 See [deployment-guide.md](./docs/deployment-guide.md)
