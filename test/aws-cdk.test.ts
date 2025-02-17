@@ -4,6 +4,7 @@ import { ECRStack } from '../lib/ecr-stack';
 import { VPCStack } from '../lib/vpc-stack';
 import { RDS_SUBNET_NAME, SERVER_SUBNET_NAME } from '../lib/utils';
 import { BastionStack } from '../lib/bastion-stack';
+import { RDSStack } from '../lib';
 
 // Test assertion overview:
 // https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.assertions-readme.html
@@ -11,6 +12,21 @@ describe('CDK tests', () => {
   const testEnv = {
     account: 'some-account',
     region: 'some-region',
+  };
+
+  const getPropertyValues = (template: Template, resourceType: string) => {
+    template.resourceCountIs(resourceType, 1);
+    return Object.values(template.findResources(resourceType))[0].Properties;
+  };
+
+  const hasSecurityGroup = (template: Template) => {
+    const securityGroupProperties = getPropertyValues(
+      template,
+      'AWS::EC2::SecurityGroup'
+    );
+    expect(Object.keys(securityGroupProperties)).toContain(
+      'SecurityGroupEgress'
+    );
   };
 
   // how to print out the template to help with writing the tests
@@ -112,16 +128,42 @@ describe('CDK tests', () => {
       env: testEnv,
     });
     const template = Template.fromStack(stack);
-    const securityGroupType = 'AWS::EC2::SecurityGroup';
-    template.resourceCountIs(securityGroupType, 1);
-    const securityGroupProperties = Object.values(
-      template.findResources(securityGroupType)
-    )[0].Properties;
-    expect(Object.keys(securityGroupProperties)).toContain(
-      'SecurityGroupEgress'
-    );
+    hasSecurityGroup(template);
     template.hasResourceProperties('AWS::EC2::Instance', {
       InstanceType: 't3.nano',
     });
+  });
+
+  it('RDS Stack has correct resources', () => {
+    const app = new App();
+    const vpc = new VPCStack(app, 'testVPCStack', { env: testEnv });
+    const bastion = new BastionStack(app, 'testBastionStack', {
+      vpc: vpc.vpc,
+      env: testEnv,
+    });
+    const stack = new RDSStack(app, 'testRDSStack', {
+      stageName: 'test',
+      vpc: vpc.vpc,
+      bastionSecurityGroup: bastion.securityGroup,
+      env: testEnv,
+    });
+    const template = Template.fromStack(stack);
+    hasSecurityGroup(template);
+    const securityGroupIngressProperties = getPropertyValues(
+      template,
+      'AWS::EC2::SecurityGroupIngress'
+    );
+    expect(securityGroupIngressProperties.FromPort).toEqual(5432);
+    expect(securityGroupIngressProperties.ToPort).toEqual(5432);
+    const instanceProperties = getPropertyValues(
+      template,
+      'AWS::RDS::DBInstance'
+    );
+    expect(instanceProperties.DBInstanceClass).toEqual('db.t3.micro');
+    expect(instanceProperties.DBName).toEqual('DBTest');
+    expect(instanceProperties.Engine).toEqual('postgres');
+    expect(instanceProperties.EngineVersion).toEqual('16.4');
+    expect(instanceProperties.publiclyAccessible).toBeFalsy();
+    expect(instanceProperties.StorageType).toEqual('gp2');
   });
 });
