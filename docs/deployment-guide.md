@@ -47,9 +47,11 @@ Below is an example flow of how the stacks can be deployed. You can use CloudFor
 
 2. Deploy Docker image +/- server:
 
+- Check the location of the Dockerfile in your server repository. You may need to update filepath in the `docker build ...` command in `utils.ts::dockerBuildCommands` so the build can execute properly
 - Staging will deploy docker image only: `npx cdk deploy CodePipelineStack-Staging`
   - Afterwards, you will need to deploy server separately: `npx cdk deploy DeploymentStack-Staging`
 - Production **_includes server deployment_**: `CodePipelineStack-Production`
+  - There is a **manual approval step** that requires the IAM user to approve the deployment on the AWS console UI on CodePipeline
 - This will deploy `ECRStack` if it is not deployed
 - Use CodePipeline on AWS Console UI to monitor progress
 
