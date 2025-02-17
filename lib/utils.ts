@@ -18,6 +18,7 @@ export const CDK_SYNTH_OUTPUT_DIRECTORY = 'cdk.out';
 
 export const GITHUB_TOKEN = SecretValue.secretsManager('gh-token');
 
+// Change filepath in the `docker build ...` command if the server Dockerfile is not in the root directory
 export const dockerBuildCommands = [
   'echo "Logging in to Amazon ECR..."',
   'aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com',

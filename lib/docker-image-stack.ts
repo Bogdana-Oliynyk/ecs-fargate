@@ -59,6 +59,11 @@ export class DockerImageStack extends Stack {
         buildImage: LinuxBuildImage.STANDARD_7_0,
         privileged: true,
       },
+      // Docker build step is done using code from the server repo
+      // so we have to pass in an array of commands rather than
+      // using custom npm commands and/or scripts from this repo
+      // NOTE: Change filepath in the `docker build ...` command if
+      // the server Dockerfile is not in the root directory
       commands: dockerBuildCommands,
       env: {
         AWS_ACCOUNT_ID: this.account,
@@ -100,8 +105,8 @@ export class DockerImageStack extends Stack {
       // docker images. That said, the pipeline needs a stack of
       // its own to work so it's technically a no-op
       new Stack(stage, `ServerStack-${stageTitle}`, { env: props.env });
-    pipeline.addStage(stage, { pre: [dockerBuild] });
-}
+      pipeline.addStage(stage, { pre: [dockerBuild] });
+    }
 
     pipeline.buildPipeline();
 
