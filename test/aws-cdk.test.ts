@@ -1,10 +1,13 @@
 import { App } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
-import { ECRStack } from '../lib/ecr-stack';
-import { VPCStack } from '../lib/vpc-stack';
-import { RDS_SUBNET_NAME, SERVER_SUBNET_NAME } from '../lib/utils';
-import { BastionStack } from '../lib/bastion-stack';
-import { RDSStack } from '../lib';
+import {
+  RDS_SUBNET_NAME,
+  SERVER_SUBNET_NAME,
+  ECRStack,
+  VPCStack,
+  BastionStack,
+  RDSStack,
+} from '../lib/';
 
 // Test assertion overview:
 // https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.assertions-readme.html
