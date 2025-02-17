@@ -16,7 +16,7 @@ describe('CDK tests', () => {
   // how to print out the template to help with writing the tests
   // console.log(JSON.stringify(template.toJSON(), null, 2));
 
-  test('ECR template has correct resources', () => {
+  it('ECR template has correct resources', () => {
     const app = new App();
     const stack = new ECRStack(app, 'TestECRStack', { env: testEnv });
 
@@ -35,7 +35,7 @@ describe('CDK tests', () => {
     });
   });
 
-  test('VPC template has correct resources', () => {
+  it('VPC template has correct resources', () => {
     const vpcStackId = 'TestVPCStack';
     const app = new App();
     const stack = new VPCStack(app, vpcStackId, { env: testEnv });
@@ -104,7 +104,7 @@ describe('CDK tests', () => {
     ]);
   });
 
-  test('Bastion Stack has correct resources', () => {
+  it('Bastion Stack has correct resources', () => {
     const app = new App();
     const vpc = new VPCStack(app, 'testVPCStack', { env: testEnv });
     const stack = new BastionStack(app, 'testBastionStack', {
