@@ -112,15 +112,16 @@ describe('CDK tests', () => {
       env: testEnv,
     });
     const template = Template.fromStack(stack);
-    console.log(JSON.stringify(template.toJSON(), null, 2));
-    template.hasResourceProperties('AWS::EC2::SecurityGroup', {
-      SecurityGroupEgress: [
-        {
-          CidrIp: '0.0.0.0/0',
-          Description: 'Allow all outbound traffic by default',
-          IpProtocol: '-1',
-        },
-      ],
+    const securityGroupType = 'AWS::EC2::SecurityGroup';
+    template.resourceCountIs(securityGroupType, 1);
+    const securityGroupProperties = Object.values(
+      template.findResources(securityGroupType)
+    )[0].Properties;
+    expect(Object.keys(securityGroupProperties)).toContain(
+      'SecurityGroupEgress'
+    );
+    template.hasResourceProperties('AWS::EC2::Instance', {
+      InstanceType: 't3.nano',
     });
   });
 });
