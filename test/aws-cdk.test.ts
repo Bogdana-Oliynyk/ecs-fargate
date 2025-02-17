@@ -3,6 +3,7 @@ import { Template } from 'aws-cdk-lib/assertions';
 import { ECRStack } from '../lib/ecr-stack';
 import { VPCStack } from '../lib/vpc-stack';
 import { RDS_SUBNET_NAME, SERVER_SUBNET_NAME } from '../lib/utils';
+import { BastionStack } from '../lib/bastion-stack';
 
 // Test assertion overview:
 // https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.assertions-readme.html
@@ -101,5 +102,25 @@ describe('CDK tests', () => {
       'logs:PutLogEvents',
       'logs:DescribeLogStreams',
     ]);
+  });
+
+  test('Bastion Stack has correct resources', () => {
+    const app = new App();
+    const vpc = new VPCStack(app, 'testVPCStack', { env: testEnv });
+    const stack = new BastionStack(app, 'testBastionStack', {
+      vpc: vpc.vpc,
+      env: testEnv,
+    });
+    const template = Template.fromStack(stack);
+    console.log(JSON.stringify(template.toJSON(), null, 2));
+    template.hasResourceProperties('AWS::EC2::SecurityGroup', {
+      SecurityGroupEgress: [
+        {
+          CidrIp: '0.0.0.0/0',
+          Description: 'Allow all outbound traffic by default',
+          IpProtocol: '-1',
+        },
+      ],
+    });
   });
 });

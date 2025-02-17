@@ -56,17 +56,23 @@ export class DeploymentStack extends Stack {
       vpc: props?.vpc,
     });
 
-    const executionRolePolicy = new PolicyStatement({
-      effect: Effect.ALLOW,
-      // TODO: ECR permission should be more restrictive
-      actions: ['ecr:*', 'logs:CreateLogStream', 'logs:PutLogEvents'],
-    });
-    executionRolePolicy.addAllResources();
-
     const executionRole = new Role(this, `${stageTitle}ExecutionRole`, {
       assumedBy: new ServicePrincipal(ECS_TASKS_URL),
     });
-    executionRole.addToPolicy(executionRolePolicy);
+    executionRole.addToPolicy(
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        resources: ['*'],
+        actions: [
+          'ecr:GetAuthorizationToken',
+          'ecr:BatchCheckLayerAvailability',
+          'ecr:GetDownloadUrlForLayer',
+          'ecr:BatchGetImage',
+          'logs:CreateLogStream',
+          'logs:PutLogEvents',
+        ],
+      })
+    );
 
     const taskRole = new Role(this, `${stageTitle}TaskRole`, {
       assumedBy: new ServicePrincipal(ECS_TASKS_URL),
