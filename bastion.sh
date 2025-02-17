@@ -3,6 +3,7 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
+# Help text
 usage()
 {
 cat << EOF
@@ -11,9 +12,11 @@ usage: $0 BASTION_NAME AWS_REGION [-p|--profile] [-h|--help]
 This script provides access to Bastion instance via
 AWS Session Manager (SSM).
 
-Before script execution, please ensure you have authentication
-configured for AWS, whether it is via "aws configure" or
-"aws configure sso"
+Before script execution, please ensure:
+
+- Session Manager plugin is installed
+- You have authentication configured for AWS,
+  whether it is via "aws configure" or "aws configure sso"
 
 OPTIONS:
     BASTION_NAME            Bastion name defined in BastionStack
@@ -24,11 +27,13 @@ OPTIONS:
 EOF
 }
 
+# Allow `bastion.sh --help` to show usage
 if [[ $1 == "-h" || "$1" == "--help" ]]; then
     usage
     exit 0
 fi
 
+# Ensure required arguments are present
 if [[ $# -lt 2 || "$1" == -* || "S2" == -* ]]; then
     echo "Error: Missing required arguments: BASTION_NAME and AWS_REGION"
     echo "use -h or --help flag for more information"
@@ -57,6 +62,8 @@ while [ $# -gt 0 ]; do
     shift
 done
 
+# Use AWS Session manager (SSM) to access bastion
+# Ref: https://dev.to/aws-builders/create-a-bastion-with-aws-cdk-1ik8
 echo "Retrieving bastion instance ID..."
 BASTION_INSTANCE_ID=$(aws ec2 describe-instances \
     --region=$AWS_REGION \

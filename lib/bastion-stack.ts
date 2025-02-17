@@ -13,19 +13,7 @@ interface BastionStackProps extends StackProps {
 }
 /*
 We will use AWS Session manager (SSM) to access bastion.
-1. Install Session Manager Plugin if you have not done so
-2. In terminal, run:
-$ export AWS_REGION=<your region>
-
-# Add --profile <profile-name> if needed
-$ export BASTION_INSTANCE_ID=$(aws ec2 describe-instances \
-                          --region=$AWS_REGION \
-                          --filter "Name=tag:Name,Values=bastion-host" \
-                          --query "Reservations[].Instances[?State.Name == 'running'].InstanceId[]" \
-                          --output text)
-$ aws ssm start-session --target $BASTION_INSTANCE_ID --region=$AWS_REGION
-
-Ref: https://dev.to/aws-builders/create-a-bastion-with-aws-cdk-1ik8
+See `bastion.sh` or more information
 */
 export class BastionStack extends Stack {
   securityGroup: ISecurityGroup;
