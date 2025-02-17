@@ -4,7 +4,7 @@ import * as cdk from 'aws-cdk-lib';
 import {
   BastionStack,
   DeploymentStack,
-  DockerImageStack,
+  CodePipelineStack,
   ECRStack,
   RDSStack,
   VPCStack,
@@ -49,7 +49,7 @@ const stagingRdsStack = new RDSStack(app, 'RDSStack-Staging', {
 // are working on network and/or optimizing ECS/Fargate
 // without the need to publish docker image every time
 // This way we reduce unnecessary CodeBuild/CodePipeline usage
-new DockerImageStack(app, 'DockerImageStack-Staging', {
+new CodePipelineStack(app, 'CodePipelineStack-Staging', {
   stageName: STAGING,
   imageTag: STAGING,
   ecr: ecrStack.ecr,
@@ -79,7 +79,7 @@ const prodRdsStack = new RDSStack(app, 'RDSStack-Prod', {
 });
 
 // Publish Docker image + server deployment
-new DockerImageStack(app, 'DockerImageStack-Prod', {
+new CodePipelineStack(app, 'CodePipelineStack-Prod', {
   stageName: PRODUCTION,
   imageTag: PRODUCTION,
   ecr: ecrStack.ecr,

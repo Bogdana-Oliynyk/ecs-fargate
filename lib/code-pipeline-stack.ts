@@ -21,7 +21,7 @@ import { ISecurityGroup, IVpc } from 'aws-cdk-lib/aws-ec2';
 import { ISecret } from 'aws-cdk-lib/aws-secretsmanager';
 import { DeploymentStack } from './deployment-stack';
 
-interface DockerImageStackProps extends StackProps {
+interface CodePipelineProps extends StackProps {
   stageName: string;
   imageTag: string;
   ecr: IRepository;
@@ -31,8 +31,8 @@ interface DockerImageStackProps extends StackProps {
   rdsSecurityGroup?: ISecurityGroup;
 }
 
-export class DockerImageStack extends Stack {
-  constructor(scope: Construct, id: string, props: DockerImageStackProps) {
+export class CodePipelineStack extends Stack {
+  constructor(scope: Construct, id: string, props: CodePipelineProps) {
     super(scope, id, props);
     const stageName = props.stageName;
     const stageTitle = stageTitleCase(stageName);
