@@ -1,4 +1,4 @@
-import { CfnOutput, Fn, Stack, StackProps } from 'aws-cdk-lib';
+import { CfnOutput, Stack, StackProps } from 'aws-cdk-lib';
 import {
   ISecurityGroup,
   IVpc,
