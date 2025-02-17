@@ -22,7 +22,14 @@ export class VPCStack extends Stack {
       maxAzs: 2,
       natGateways: 1,
       subnetConfiguration: [
+        // Public subnet allows access to resource to/from the internet
+        // If you need to restrict access to certain resources (e.g.
+        // some server endpoints) considering implementing authentication
         { name: SERVER_SUBNET_NAME, subnetType: SubnetType.PUBLIC },
+
+        // Private isolated subnet does not have access to the internet
+        // so it's best if your resource requires secure access
+        // though that means you will need to figure in/egress yourself
         { name: RDS_SUBNET_NAME, subnetType: SubnetType.PRIVATE_ISOLATED },
       ],
     });
