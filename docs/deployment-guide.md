@@ -17,6 +17,7 @@ To utilize the code to deploy a server, you must have the following:
   - See [github-token.md](./docs/github-token.md) for more information
   - Store this token in the AWS Secrets Manager, with the name `gh-token`
 - A server repository which you have a GitHub token for AWS to access the repository. It can be a public or private repository
+  - A sample server is available [here](https://github.com/nattiechan/sample-server) if desired. You will need to fork the repository to your GitHub account as well.
   - If the token to access server repository is different from the token above:
     - Store the additional token in the AWS Secrets Manager
     - You may need to modify the code in `CodePipelineStack` accordingly to account for a different secret name
