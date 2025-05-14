@@ -126,10 +126,7 @@ describe('CDK tests', () => {
   it('Bastion Stack has correct resources', () => {
     const app = new App();
     const vpc = new VPCStack(app, 'testVPCStack', { env: testEnv });
-    const stack = new BastionStack(app, 'testBastionStack', {
-      vpc: vpc.vpc,
-      env: testEnv,
-    });
+    const stack = new BastionStack(app, 'testBastionStack', { env: testEnv });
     const template = Template.fromStack(stack);
     hasSecurityGroup(template);
     template.hasResourceProperties('AWS::EC2::Instance', {
@@ -140,13 +137,9 @@ describe('CDK tests', () => {
   it('RDS Stack has correct resources', () => {
     const app = new App();
     const vpc = new VPCStack(app, 'testVPCStack', { env: testEnv });
-    const bastion = new BastionStack(app, 'testBastionStack', {
-      vpc: vpc.vpc,
-      env: testEnv,
-    });
+    const bastion = new BastionStack(app, 'testBastionStack', { env: testEnv });
     const stack = new RDSStack(app, 'testRDSStack', {
       stageName: 'test',
-      vpc: vpc.vpc,
       bastionSecurityGroup: bastion.securityGroup,
       env: testEnv,
     });

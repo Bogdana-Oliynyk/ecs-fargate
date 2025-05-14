@@ -1,11 +1,5 @@
 import { CfnOutput, Stack, StackProps } from 'aws-cdk-lib';
-import {
-  ISecurityGroup,
-  IVpc,
-  Port,
-  SecurityGroup,
-  SubnetType,
-} from 'aws-cdk-lib/aws-ec2';
+import { Port, SecurityGroup, SubnetType } from 'aws-cdk-lib/aws-ec2';
 import {
   Cluster,
   ContainerImage,
@@ -20,19 +14,24 @@ import {
   ServicePrincipal,
 } from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
-import { ECR_REPOSITORY_NAME, ECS_TASKS_URL, stageTitleCase } from './utils';
+import {
+  ECR_REPOSITORY_NAME,
+  ECS_TASKS_URL,
+  getVpc,
+  RDS_SECRET_NAME_SSM_NAME,
+  RDS_SECURITY_GROUP_ID_SSM_NAME,
+  stageTitleCase,
+} from './utils';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { ApplicationProtocol } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
-import { ISecret, Secret } from 'aws-cdk-lib/aws-secretsmanager';
+import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Repository } from 'aws-cdk-lib/aws-ecr';
+import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 
 interface DeploymentStackProps extends StackProps {
   stageName: string;
   imageTag: string;
-  vpc: IVpc;
-  rdsSecret: ISecret;
-  rdsSecurityGroup: ISecurityGroup;
 }
 
 export class DeploymentStack extends Stack {
@@ -40,10 +39,12 @@ export class DeploymentStack extends Stack {
     super(scope, id, props);
     const stageName = props.stageName as string;
     const stageTitle = stageTitleCase(stageName);
-    const dbSecret = Secret.fromSecretCompleteArn(
+    const vpc = getVpc(this);
+
+    const dbSecret = Secret.fromSecretNameV2(
       this,
       'dbSecret',
-      props?.rdsSecret.secretArn
+      StringParameter.valueFromLookup(this, RDS_SECRET_NAME_SSM_NAME)
     );
 
     const secretsManagerPermissions = new PolicyStatement({
@@ -52,9 +53,7 @@ export class DeploymentStack extends Stack {
       resources: [dbSecret.secretArn],
     });
 
-    const ecsCluster = new Cluster(this, `ECS${stageTitle}-Cluster`, {
-      vpc: props?.vpc,
-    });
+    const ecsCluster = new Cluster(this, `ECS${stageTitle}-Cluster`, { vpc });
 
     const executionRole = new Role(this, `${stageTitle}ExecutionRole`, {
       assumedBy: new ServicePrincipal(ECS_TASKS_URL),
@@ -119,7 +118,7 @@ export class DeploymentStack extends Stack {
     const fargateSecurityGroup = new SecurityGroup(
       this,
       `${stageTitle}FargateSecurityGroup`,
-      { vpc: props?.vpc, allowAllOutbound: true }
+      { vpc, allowAllOutbound: true }
     );
 
     // If we want the server to be a HTTPS server
@@ -145,7 +144,7 @@ export class DeploymentStack extends Stack {
     const rdsSecurityGroup = SecurityGroup.fromSecurityGroupId(
       this,
       `RDS${stageTitle}SecurityGroup`,
-      props?.rdsSecurityGroup.securityGroupId
+      StringParameter.valueFromLookup(this, RDS_SECURITY_GROUP_ID_SSM_NAME)
     );
 
     rdsSecurityGroup.connections.allowFrom(

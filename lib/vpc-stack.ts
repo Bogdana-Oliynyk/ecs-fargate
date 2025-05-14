@@ -2,18 +2,16 @@ import { RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import {
   FlowLogDestination,
   IpAddresses,
-  IVpc,
   SubnetType,
   Vpc,
 } from 'aws-cdk-lib/aws-ec2';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
-import { RDS_SUBNET_NAME, SERVER_SUBNET_NAME } from './utils';
+import { RDS_SUBNET_NAME, SERVER_SUBNET_NAME, VPC_ID_SSM_NAME } from './utils';
+import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 
 export class VPCStack extends Stack {
-  vpc: IVpc;
-
   constructor(scope: Construct, id: string, props: StackProps) {
     super(scope, id, props);
 
@@ -52,6 +50,10 @@ export class VPCStack extends Stack {
       destination: FlowLogDestination.toCloudWatchLogs(vpcLogGroup, vpcLogRole),
     });
 
-    this.vpc = vpc;
+    // Allow other stacks to reference VPC via SSM parameter
+    new StringParameter(this, 'VpcId', {
+      parameterName: VPC_ID_SSM_NAME,
+      stringValue: vpc.vpcId,
+    });
   }
 }

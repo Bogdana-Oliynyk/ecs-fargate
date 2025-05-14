@@ -2,15 +2,12 @@ import { Stack, StackProps } from 'aws-cdk-lib';
 import {
   BastionHostLinux,
   ISecurityGroup,
-  IVpc,
   SecurityGroup,
   SubnetType,
 } from 'aws-cdk-lib/aws-ec2';
 import { Construct } from 'constructs';
+import { getVpc } from './utils';
 
-interface BastionStackProps extends StackProps {
-  vpc: IVpc;
-}
 /*
 We will use AWS Session manager (SSM) to access bastion.
 See `bastion.sh` or more information
@@ -18,13 +15,14 @@ See `bastion.sh` or more information
 export class BastionStack extends Stack {
   securityGroup: ISecurityGroup;
 
-  constructor(scope: Construct, id: string, props: BastionStackProps) {
+  constructor(scope: Construct, id: string, props: StackProps) {
     super(scope, id, props);
+    const vpc = getVpc(this);
 
     const bastionSecurityGroup = new SecurityGroup(
       this,
       'BastionSecurityGroup',
-      { vpc: props?.vpc, allowAllOutbound: true }
+      { vpc, allowAllOutbound: true }
     );
     this.securityGroup = bastionSecurityGroup;
 
@@ -33,7 +31,7 @@ export class BastionStack extends Stack {
     // if there is a large demand in bastion access we may
     // need to adjust things accordingly
     new BastionHostLinux(this, 'BastionHost', {
-      vpc: props?.vpc,
+      vpc,
       instanceName: 'bastion-host',
       subnetSelection: { subnetType: SubnetType.PUBLIC },
       securityGroup: bastionSecurityGroup,

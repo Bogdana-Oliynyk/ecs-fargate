@@ -5,7 +5,6 @@ import {
   InstanceSize,
   InstanceType,
   ISecurityGroup,
-  IVpc,
   Port,
   SecurityGroup,
   SubnetType,
@@ -18,29 +17,31 @@ import {
   StorageType,
 } from 'aws-cdk-lib/aws-rds';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
-import { stageTitleCase } from './utils';
-import { ISecret } from 'aws-cdk-lib/aws-secretsmanager';
+import {
+  getVpc,
+  RDS_SECRET_NAME_SSM_NAME,
+  RDS_SECURITY_GROUP_ID_SSM_NAME,
+  stageTitleCase,
+} from './utils';
+import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 
 interface RDSStackProps extends StackProps {
   stageName: string;
-  vpc: IVpc;
   bastionSecurityGroup: ISecurityGroup;
 }
 
 export class RDSStack extends Stack {
-  securityGroup: ISecurityGroup;
-  rdsSecret: ISecret;
-
   constructor(scope: Construct, id: string, props: RDSStackProps) {
     super(scope, id, props);
     const stageName = props?.stageName as string;
     const stageTitle = stageTitleCase(stageName);
     const isProduction = stageName === 'production';
+    const vpc = getVpc(this);
 
     const rdsSecurityGroup = new SecurityGroup(
       this,
       `RDS${stageTitle}SecurityGroup`,
-      { vpc: props?.vpc, allowAllOutbound: true }
+      { vpc, allowAllOutbound: true }
     );
 
     let dbBaseProps: DatabaseInstanceProps = {
@@ -51,7 +52,7 @@ export class RDSStack extends Stack {
         InstanceClass.BURSTABLE3,
         InstanceSize.MICRO
       ),
-      vpc: props?.vpc,
+      vpc,
       vpcSubnets: { subnetType: SubnetType.PRIVATE_ISOLATED },
       allocatedStorage: 20,
       cloudwatchLogsRetention: RetentionDays.TWO_WEEKS,
@@ -89,11 +90,19 @@ export class RDSStack extends Stack {
       'Allow access from Bastion'
     );
 
-    this.securityGroup = rdsSecurityGroup;
+    // Allow other stacks to reference RDS-related items via SSM parameter
+    new StringParameter(this, 'RdsSecurityGroupId', {
+      parameterName: RDS_SECURITY_GROUP_ID_SSM_NAME,
+      stringValue: rdsSecurityGroup.securityGroupId,
+    });
+
     const secret = rds.secret;
     if (!secret) {
       throw new Error('Missing DB Secret');
     }
-    this.rdsSecret = secret;
+    new StringParameter(this, 'RdsSecretArn', {
+      parameterName: RDS_SECRET_NAME_SSM_NAME,
+      stringValue: secret.secretName,
+    });
   }
 }

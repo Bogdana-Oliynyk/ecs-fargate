@@ -24,22 +24,18 @@ const PRODUCTION = 'production';
 const ecrStack = new ECRStack(app, 'ECRStack', { env: ENV });
 
 // VPC
-const vpcStack = new VPCStack(app, 'VPCStack', { env: ENV });
+new VPCStack(app, 'VPCStack', { env: ENV });
 
 // Bastion for DB access
-const bastionStack = new BastionStack(app, 'BastionStack', {
-  vpc: vpcStack.vpc,
-  env: ENV,
-});
+const bastionStack = new BastionStack(app, 'BastionStack', { env: ENV });
 
 // ----- END SHARED SERVICES -----
 
 // ---------- STAGING ------------
 
 // RDS DB
-const stagingRdsStack = new RDSStack(app, 'RDSStack-Staging', {
+new RDSStack(app, 'RDSStack-Staging', {
   stageName: STAGING,
-  vpc: vpcStack.vpc,
   bastionSecurityGroup: bastionStack.securityGroup,
   env: ENV,
 });
@@ -60,9 +56,6 @@ new CodePipelineStack(app, 'CodePipelineStack-Staging', {
 new DeploymentStack(app, 'DeploymentStack-Staging', {
   stageName: STAGING,
   imageTag: STAGING,
-  vpc: vpcStack.vpc,
-  rdsSecret: stagingRdsStack.rdsSecret,
-  rdsSecurityGroup: stagingRdsStack.securityGroup,
   env: ENV,
 });
 
@@ -71,9 +64,8 @@ new DeploymentStack(app, 'DeploymentStack-Staging', {
 // ---------- PRODUCTION ------------
 
 // RDS DB
-const prodRdsStack = new RDSStack(app, 'RDSStack-Prod', {
+new RDSStack(app, 'RDSStack-Prod', {
   stageName: PRODUCTION,
-  vpc: vpcStack.vpc,
   bastionSecurityGroup: bastionStack.securityGroup,
   env: ENV,
 });
@@ -84,9 +76,6 @@ new CodePipelineStack(app, 'CodePipelineStack-Prod', {
   imageTag: PRODUCTION,
   ecr: ecrStack.ecr,
   deployServer: true,
-  vpc: vpcStack.vpc,
-  rdsSecret: prodRdsStack.rdsSecret,
-  rdsSecurityGroup: prodRdsStack.securityGroup,
   env: ENV,
 });
 

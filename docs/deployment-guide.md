@@ -26,35 +26,55 @@ To utilize the code to deploy a server, you must have the following:
 
 - Run `npm install`
 - Ensure you are authenticated with AWS - either via `aws configure` or `aws configure sso` (if SSO is enabled)
-  - See [configure-aws-cli.md](./docs/configure-aws-cli.md) for more details
-- In [utils.ts](./lib/utils.ts), change the server and CDK GitHub repository addresses to the repositories that you are using
+  - See [configure-aws-cli.md](./configure-aws-cli.md) for more details
+- In [utils.ts](../lib/utils.ts), change the server and CDK GitHub repository addresses to the repositories that you are using
 
 ### Deployment
 
-[aws-cdk.ts](./bin/aws-cdk.ts) contains all the stacks available for deployment. **_Staging is best for experimenting ECS/Fargate optimization without excessive CodeBuild resource usage._**
-
-There is no strict rules in terms of the stack order for deployment. The stacks are set up in a way that you can deploy most stacks independently, or the stack will also deploy other resources that the stack is dependent upon.
+[aws-cdk.ts](../bin/aws-cdk.ts) contains all the stacks available for deployment. **_Staging is best for experimenting ECS/Fargate optimization without excessive CodeBuild resource usage._**
 
 The syntax to deploy is `npx cdk deploy <stack-id>` (include `--profile` flag if your account has a profile name associated with it).
 
 You can see the list of stacks using `cdk list`.
 
-Below is an example flow of how the stacks can be deployed. You can use CloudFormation or console to monitor progress unless otherwise specified:
+#### _Step 1: Ensure the following is set up_
 
-1. Deploy RDS: `npx cdk deploy RDSStack-Staging` (or `RDSStack-Production` for production ENV)
+- GitHub access token(s) stored in the AWS Secrets Manager, with the name `gh-token`
+- Server repository path is changed in [utils.ts](../lib/utils.ts)
+- AWS CDK repository path is changed in [utils.ts](../lib/utils.ts)
+- The branch for the AWS CDK repository path is correct in the [code-pipeline-stack.ts](../lib/code-pipeline-stack.ts) (where the variable `pipeline` is defined)
 
-   - This will deploy `VPCStack` and `BastionStack` if they are not deployed
-   - We recommend separate DB deployments from server deployments in general. As much as they are interconnected the resource maintenance should be done separately
+#### _Step 2: Deploy "shared services"_
 
-2. Deploy Docker image +/- server:
+Shared services typically refers to the resources that are shared across multiple stacks. This includes the ECR, VPC in this repository.
 
-- Check the location of the Dockerfile in your server repository. You may need to update filepath in the `docker build ...` command in `utils.ts::dockerBuildCommands` so the build can execute properly
-- Staging will deploy docker image only: `npx cdk deploy CodePipelineStack-Staging`
-  - Afterwards, you will need to deploy server separately: `npx cdk deploy DeploymentStack-Staging`
-- Production **_includes server deployment_**: `CodePipelineStack-Production`
-  - There is a **manual approval step** that requires the IAM user to approve the deployment on the AWS console UI on CodePipeline
-- This will deploy `ECRStack` if it is not deployed
-- Use CodePipeline on AWS Console UI to monitor progress
+```bash
+# Deploy ECR and VPC
+$ npx cdk deploy ECRStack VPCStack
+```
+
+#### _Step 3: Deploy RDS_
+
+You will need to deploy RDS separately since RDS depends on an established VPC on AWS. Moreover, as much as the database and the server are interconnected, RDS should be deployed separately from the server itself.
+
+Deploying RDS Stack will also deploy `BastionStack`.
+
+```bash
+# RDS Staging
+$ npx cdk deploy RDSStack-Staging
+# OR RDS Prod
+$ npx cdk deploy RDSStack-Prod
+```
+
+#### _Step 4: Deploy Docker image +/- server_
+
+Check the location of the Dockerfile in your server repository. You may need to update filepath in the `docker build ...` command in `utils.ts::dockerBuildCommands` so the build can execute properly.
+
+Staging will deploy docker image only: `npx cdk deploy CodePipelineStack-Staging`. Afterwards, you will need to deploy server separately: `npx cdk deploy DeploymentStack-Staging`.
+
+Production **_includes server deployment_**: `CodePipelineStack-Production`. There is a **manual approval step** that requires the IAM user to approve the deployment on the AWS console UI on CodePipeline.
+
+Use CodePipeline on AWS Console UI to monitor progress.
 
 ---
 
@@ -92,3 +112,4 @@ To do so:
 - Delete relevant ECR repository
   - `npx cdk destroy` cannot delete the ECR stack when the repository contains images
 - Run `npx cdk destroy --all`
+- Delete any entries from AWS Systems Mananger (SSM) and/or Secrets Manager

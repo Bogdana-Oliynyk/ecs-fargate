@@ -1,21 +1,24 @@
 import { SecretValue } from 'aws-cdk-lib';
+import { Vpc } from 'aws-cdk-lib/aws-ec2';
+import { StringParameter } from 'aws-cdk-lib/aws-ssm';
+import { Construct } from 'constructs';
 
-export const ECR_REPOSITORY_NAME = 'server-repository';
-
+// General AWS CDK related items
 export const ECS_TASKS_URL = 'ecs-tasks.amazonaws.com';
-
+export const ECR_REPOSITORY_NAME = 'server-repository';
 export const SERVER_SUBNET_NAME = 'server';
-
 export const RDS_SUBNET_NAME = 'rds';
-
-export const SERVER_GITHUB_REPO = '<owner>/<server-repo>';
-
-export const CDK_GITHUB_REPO = '<owner>/<cdk-repo>';
-
 export const CDK_SYNTH_STEP = 'Synth';
-
 export const CDK_SYNTH_OUTPUT_DIRECTORY = 'cdk.out';
 
+// CodePipeline related items
+export const SERVER_GITHUB_REPO = '<owner>/<server-repo>';
+export const CDK_GITHUB_REPO = '<owner>/<cdk-repo>';
+
+// SSM Parameter store and Secrets Manager related items
+export const VPC_ID_SSM_NAME = `/${SERVER_SUBNET_NAME}/vpc-id`;
+export const RDS_SECURITY_GROUP_ID_SSM_NAME = `/${RDS_SUBNET_NAME}/rds-security-group-id`;
+export const RDS_SECRET_NAME_SSM_NAME = `/${RDS_SUBNET_NAME}/rds-secret-name`;
 export const GITHUB_TOKEN = SecretValue.secretsManager('gh-token');
 
 // Change filepath in the `docker build ...` command if the server Dockerfile is not in the root directory
@@ -34,3 +37,8 @@ export const stageTitleCase = (str: string) =>
     /\w\S*/g,
     (text) => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
   );
+
+export const getVpc = (scope: Construct) => {
+  const vpcId = StringParameter.valueFromLookup(scope, VPC_ID_SSM_NAME);
+  return Vpc.fromLookup(scope, 'vpc', { vpcId });
+};

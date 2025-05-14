@@ -17,8 +17,6 @@ import {
   SERVER_GITHUB_REPO,
 } from './utils';
 import { LinuxBuildImage } from 'aws-cdk-lib/aws-codebuild';
-import { ISecurityGroup, IVpc } from 'aws-cdk-lib/aws-ec2';
-import { ISecret } from 'aws-cdk-lib/aws-secretsmanager';
 import { DeploymentStack } from './deployment-stack';
 
 interface CodePipelineProps extends StackProps {
@@ -26,9 +24,6 @@ interface CodePipelineProps extends StackProps {
   imageTag: string;
   ecr: IRepository;
   deployServer: boolean;
-  vpc?: IVpc;
-  rdsSecret?: ISecret;
-  rdsSecurityGroup?: ISecurityGroup;
 }
 
 export class CodePipelineStack extends Stack {
@@ -77,18 +72,10 @@ export class CodePipelineStack extends Stack {
     const stackName = `ServerStack-${stageTitle}`;
 
     if (props.deployServer) {
-      if (!props.vpc || !props.rdsSecret || !props.rdsSecurityGroup) {
-        throw new Error(
-          'Server deployment requires VPC and/or RDS info to execute properly.'
-        );
-      }
       // Execute server deploymnent within the same CodePipeline
       new DeploymentStack(stage, stackName, {
         stageName: props.stageName,
         imageTag: props.imageTag,
-        vpc: props.vpc,
-        rdsSecret: props.rdsSecret,
-        rdsSecurityGroup: props.rdsSecurityGroup,
         env: props.env,
       });
       pipeline.addStage(stage, {
