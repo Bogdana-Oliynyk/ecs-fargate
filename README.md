@@ -31,10 +31,8 @@ See [deployment-guide.md](./docs/deployment-guide.md)
 
 ## Future improvements
 
-- Include more details instructions on deployment and how to check your work afterwards
 - Include tests for CodePipelineStack
 - Include more detailed instructions on how to generate IAM users with SSO access
 - Generate certificate (and manage Route 53, if desired) via CDK, so the server can handle HTTPS traffic by default
 - Generate and attach EC2 Key pairs to the bastion instance, so we can set up an SSH tunnel to RDS via Bastion _([This repo](https://github.com/aws-samples/secure-bastion-cdk) provides a great example on how to implement on top of the current infrastructure.)_
-- Include a stack that automatically publish docker images and deploys server with a single stack
 - Ensure all logs have a retention policy (so they are not retained forever)

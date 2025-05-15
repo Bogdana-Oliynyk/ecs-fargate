@@ -112,4 +112,6 @@ To do so:
 - Delete relevant ECR repository
   - `npx cdk destroy` cannot delete the ECR stack when the repository contains images
 - Run `npx cdk destroy --all`
+  - If there is any stack that fails deletion, you may need to manually delete the stack on CloudFormation on AWS Console UI
+- Double check all services to make sure there is no dangling resource left behind (e.g. ECR, ECS, RDS, VPC...etc.)
 - Delete any entries from AWS Systems Mananger (SSM) and/or Secrets Manager
